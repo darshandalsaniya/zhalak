@@ -43,7 +43,7 @@ export default function Studio() {
     setTranscript('');
     setUploadStatus('Preparing the audio from your clip…');
     try {
-      const result = await draftsFromVideo(selected.file, run.signal, () => setUploadStatus('Sarvam is transcribing the audio and drafting products…'));
+      const result = await draftsFromVideo(selected.file, run.signal, () => setUploadStatus('Sarvam is transcribing the audio and drafting products. Longer clips may take more time…'));
       if (run.signal.aborted) return;
       setTranscript(result.transcript);
       if (result.drafts.length === 0) {

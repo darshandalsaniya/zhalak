@@ -18,7 +18,7 @@ export const HealthCheckResponse = zod.object({
 
 
 /**
- * @summary Draft products from the speech in a short seller video
+ * @summary Draft products from the speech in a seller video up to two minutes long
  */
 export const AnalyzeCatalogVideoBody = zod.object({
   "audio": zod.instanceof(Blob)
@@ -42,7 +42,7 @@ export const analyzeCatalogVideoResponseProductsItemMaterialMax = 70;
 export const analyzeCatalogVideoResponseProductsItemColorMax = 70;
 
 export const analyzeCatalogVideoResponseProductsItemSourceSecondMin = 0;
-export const analyzeCatalogVideoResponseProductsItemSourceSecondMax = 30;
+export const analyzeCatalogVideoResponseProductsItemSourceSecondMax = 120;
 
 export const analyzeCatalogVideoResponseProductsMax = 6;
 

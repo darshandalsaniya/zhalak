@@ -2,7 +2,10 @@ import { analyzeCatalogVideo, ApiError } from '@workspace/api-client-react';
 import { sampleAsset, type Product } from './catalog-demo';
 
 const supportedTypes = new Set(['video/mp4', 'video/quicktime', 'video/webm']);
-export const uploadLimits = 'MP4, MOV or WebM · 30 seconds max · 50 MB max';
+const maxVideoSeconds = 120;
+// Container metadata and decoder padding may differ by a fraction of a frame.
+const durationTolerance = 0.05;
+export const uploadLimits = `MP4, MOV or WebM · ${maxVideoSeconds / 60} minutes max · 50 MB max`;
 
 export function validateVideoFile(file: File): string | null {
   if (!file.size || file.size > 50_000_000) return 'Choose a non-empty video under 50 MB.';
@@ -29,7 +32,8 @@ function waitForVideo(video: HTMLVideoElement, event: 'loadeddata' | 'seeked'): 
 
 function wavFile(audio: AudioBuffer): File {
   const channelData = Array.from({ length: audio.numberOfChannels }, (_, i) => audio.getChannelData(i));
-  const bytes = new ArrayBuffer(44 + audio.length * 2);
+  const samples = Math.min(audio.length, maxVideoSeconds * audio.sampleRate);
+  const bytes = new ArrayBuffer(44 + samples * 2);
   const view = new DataView(bytes);
   const put = (pos: number, text: string) => {
     for (let i = 0; i < text.length; i += 1) view.setUint8(pos + i, text.charCodeAt(i));
@@ -45,9 +49,9 @@ function wavFile(audio: AudioBuffer): File {
   view.setUint16(32, 2, true);
   view.setUint16(34, 16, true);
   put(36, 'data');
-  view.setUint32(40, audio.length * 2, true);
+  view.setUint32(40, samples * 2, true);
   let peak = 0;
-  for (let i = 0; i < audio.length; i += 1) {
+  for (let i = 0; i < samples; i += 1) {
     const sample = channelData.reduce((sum, channel) => sum + channel[i], 0) / channelData.length;
     const pcm = Math.max(-1, Math.min(1, sample));
     peak = Math.max(peak, Math.abs(pcm));
@@ -92,9 +96,10 @@ export async function draftsFromVideo(
     const loaded = waitForVideo(video, 'loadeddata');
     video.src = url;
     await loaded;
-    if (!Number.isFinite(video.duration) || video.duration <= 0 || video.duration > 30.05) {
-      throw new Error('Trim the video to 30 seconds or less and try again.');
+    if (!Number.isFinite(video.duration) || video.duration <= 0 || video.duration > maxVideoSeconds + durationTolerance) {
+      throw new Error('Trim the video to 2 minutes or less and try again.');
     }
+    signal.throwIfAborted();
     let audio: AudioBuffer;
     try {
       const decoder = new OfflineAudioContext(1, 1, 16_000);
@@ -102,7 +107,9 @@ export async function draftsFromVideo(
     } catch {
       throw new Error('Could not read the audio track. Try an MP4 with AAC audio and clear speech.');
     }
-    if (audio.duration > 30) throw new Error('Trim the audio and video to under 30 seconds and try again.');
+    if (audio.duration > maxVideoSeconds + durationTolerance) {
+      throw new Error('Trim the audio and video to 2 minutes or less and try again.');
+    }
     signal.throwIfAborted();
     const outgoing = wavFile(audio);
     onSending();

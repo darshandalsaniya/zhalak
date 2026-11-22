@@ -1,4 +1,5 @@
 import { AnalyzeCatalogVideoResponse, type CatalogVideoAnalysis } from "@workspace/api-zod";
+import { splitSpeechWav } from "./catalog-wav";
 
 type Caption = { text: string; second: number | null };
 type SpeechResponse = {
@@ -23,6 +24,7 @@ async function sarvamJson<T>(
   step: SarvamCatalogError["step"],
   path: string,
   body: FormData | string,
+  signal: AbortSignal,
 ): Promise<T> {
   let response: Response;
   try {
@@ -33,7 +35,7 @@ async function sarvamJson<T>(
         ...(typeof body === "string" ? { "Content-Type": "application/json" } : {}),
       },
       body,
-      signal: AbortSignal.timeout(30_000),
+      signal: AbortSignal.any([signal, AbortSignal.timeout(30_000)]),
       redirect: "error",
     });
   } catch {
@@ -50,33 +52,20 @@ async function sarvamJson<T>(
   }
 }
 
-export function readWavDuration(wav: Buffer): number | null {
-  // Accept the canonical PCM WAV written by the browser, not arbitrary media.
-  if (wav.length <= 44 || wav.toString("ascii", 0, 4) !== "RIFF" ||
-      wav.readUInt32LE(4) !== wav.length - 8 ||
-      wav.toString("ascii", 8, 16) !== "WAVEfmt " ||
-      wav.readUInt32LE(16) !== 16 || wav.readUInt16LE(20) !== 1 ||
-      wav.readUInt16LE(22) !== 1 || wav.readUInt32LE(24) !== 16_000 ||
-      wav.readUInt32LE(28) !== 32_000 || wav.readUInt16LE(32) !== 2 ||
-      wav.readUInt16LE(34) !== 16 || wav.toString("ascii", 36, 40) !== "data" ||
-      wav.readUInt32LE(40) !== wav.length - 44 || wav.length % 2 !== 0) return null;
-  return (wav.length - 44) / 32_000;
-}
-
-export async function analyzeSellerAudio(
-  key: string, audio: Blob, duration: number,
-): Promise<CatalogVideoAnalysis> {
+async function transcribeSegment(
+  key: string, { audio, offset, seconds }: ReturnType<typeof splitSpeechWav>[number], signal: AbortSignal,
+): Promise<{ transcript: string; language: string | null; captions: Caption[] }> {
   const form = new FormData();
   form.append("file", audio, "showcase.wav");
   form.append("model", "saaras:v4");
   form.append("mode", "codemix");
   form.append("language_code", "unknown");
   form.append("with_timestamps", "true");
-  const speech = await sarvamJson<SpeechResponse>(key, "transcribe", "/speech-to-text", form);
-  if (typeof speech.transcript !== "string") throw new SarvamCatalogError("transcribe", 200);
+  const speech = await sarvamJson<SpeechResponse>(key, "transcribe", "/speech-to-text", form, signal);
+  if (typeof speech?.transcript !== "string") throw new SarvamCatalogError("transcribe", 200);
   const transcript = speech.transcript.trim();
   const language = typeof speech.language_code === "string" ? speech.language_code : null;
-  if (!transcript) return { transcript, language, products: [] };
+  if (!transcript) return { transcript, language, captions: [] };
 
   const words = speech.timestamps?.words;
   const times = speech.timestamps?.start_time_seconds;
@@ -85,10 +74,29 @@ export async function analyzeSellerAudio(
         if (typeof text !== "string" || !text.trim()) return [];
         const second: unknown = times[index];
         return [{ text, second: typeof second === "number" && Number.isFinite(second)
-          ? Math.min(Math.max(0, second), duration)
+          ? offset + Math.min(Math.max(0, second), seconds)
           : null }];
       })
     : [];
+  return { transcript, language, captions };
+}
+
+export async function analyzeSellerAudio(
+  key: string, wav: Buffer, signal: AbortSignal,
+): Promise<CatalogVideoAnalysis> {
+  const segments = splitSpeechWav(wav);
+  const cancelTranscription = new AbortController();
+  const transcriptionSignal = AbortSignal.any([signal, cancelTranscription.signal]);
+  const results = await Promise.all(segments.map((segment) => transcribeSegment(key, segment, transcriptionSignal)))
+    .catch((err: unknown) => {
+      cancelTranscription.abort();
+      throw err;
+    });
+  const transcript = results.map((r) => r.transcript).filter(Boolean).join("\n");
+  const language = results.find((r) => r.transcript && r.language)?.language ?? null;
+  if (!transcript) return { transcript, language, products: [] };
+
+  const captions = results.flatMap((r) => r.captions);
   const response = await sarvamJson<{ choices?: { message?: { content?: unknown } }[] }>(
     key, "draft", "/v2/chat/completions", JSON.stringify({
       model: "sarvam-105b",
@@ -100,7 +108,7 @@ export async function analyzeSellerAudio(
       temperature: 0.1,
       max_tokens: 4096,
       response_format: { type: "json_object" },
-    }),
+    }), signal,
   );
   try {
     const content = response.choices?.[0]?.message?.content;

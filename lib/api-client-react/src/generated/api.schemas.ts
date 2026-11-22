@@ -6,7 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 export interface CatalogAudioInput {
-  /** Mono 16 kHz PCM WAV */
+  /** Mono 16 kHz PCM WAV, up to 120 seconds */
   audio: Blob | File;
 }
 
@@ -58,7 +58,7 @@ export interface CatalogProductSuggestion {
   color: string;
   /**
      * @minimum 0
-     * @maximum 30
+     * @maximum 120
      * @nullable
      */
   sourceSecond: number | null;

@@ -7,6 +7,6 @@
  */
 
 export interface CatalogAudioInput {
-  /** Mono 16 kHz PCM WAV */
+  /** Mono 16 kHz PCM WAV, up to 120 seconds */
   audio: Blob | File;
 }

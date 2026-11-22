@@ -169,7 +169,7 @@ export const getAnalyzeCatalogVideoUrl = () => {
 }
 
 /**
- * @summary Draft products from the speech in a short seller video
+ * @summary Draft products from the speech in a seller video up to two minutes long
  */
 export const analyzeCatalogVideo = async (catalogAudioInput: CatalogAudioInput, options?: Parameters<typeof customFetch>[1]): Promise<CatalogVideoAnalysis> => {
     const formData = new FormData();
@@ -223,7 +223,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type AnalyzeCatalogVideoMutationVariables = {data: BodyType<CatalogAudioInput>}
 
     /**
- * @summary Draft products from the speech in a short seller video
+ * @summary Draft products from the speech in a seller video up to two minutes long
  */
 export const useAnalyzeCatalogVideo = <TError = ErrorType<CatalogVideoError>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof analyzeCatalogVideo>>, TError,AnalyzeCatalogVideoMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}

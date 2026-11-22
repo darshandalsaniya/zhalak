@@ -41,7 +41,7 @@ export interface CatalogProductSuggestion {
   color: string;
   /**
      * @minimum 0
-     * @maximum 30
+     * @maximum 120
      * @nullable
      */
   sourceSecond: number | null;
