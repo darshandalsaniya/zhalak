@@ -5,7 +5,7 @@ import { SAMPLE_POSTER } from '@/lib/catalog-demo';
 import { useDemo, useNow, catalogOf, tr, type DictKey } from '@/lib/store';
 import { Countdown, PriceTag } from '@/components/shell';
 
-const CATS = ['all', 'Sarees', 'Jewellery', 'Kurtas'] as const;
+const CATS = ['all', 'Sarees', 'Jewellery', 'Kurtas', 'Other'] as const;
 
 export default function Shop() {
   const s = useDemo();
@@ -45,7 +45,7 @@ export default function Shop() {
             className="w-full rounded-full border border-input bg-card py-3 pl-11 pr-4 outline-none focus:ring-2 focus:ring-ring/40" />
         </div>
         <div className="mt-3 flex gap-2 overflow-x-auto">
-          {CATS.map((c) => (
+          {CATS.filter((c) => c !== 'Other' || all.some((p) => p.category === c)).map((c) => (
             <button key={c} data-testid={`button-cat-${c}`} onClick={() => setCat(c)}
               className={`whitespace-nowrap rounded-full border px-4 py-1.5 text-sm font-semibold transition ${cat === c ? 'border-secondary bg-secondary text-secondary-foreground' : 'bg-card hover:bg-muted'}`}>
               {tr(L, c as DictKey)}

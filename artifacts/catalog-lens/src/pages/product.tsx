@@ -44,17 +44,17 @@ export default function ProductPage() {
           <PriceTag p={p} now={now} big />
           {p.offerEndsAt && <Countdown endsAt={p.offerEndsAt} now={now} lang={L} />}
           <p className="text-foreground/80">{hi ? p.descriptionHi : p.description}</p>
-          <dl className="grid grid-cols-2 gap-3 text-sm">
-            <div className="rounded-2xl bg-muted p-3"><dt className="text-xs text-muted-foreground">{tr(L, 'material')}</dt><dd className="font-semibold">{p.material}</dd></div>
-            <div className="rounded-2xl bg-muted p-3"><dt className="text-xs text-muted-foreground">{tr(L, 'color')}</dt><dd className="font-semibold">{p.color}</dd></div>
-          </dl>
+          {(p.material || p.color) && <dl className="grid grid-cols-2 gap-3 text-sm">
+            {p.material && <div className="rounded-2xl bg-muted p-3"><dt className="text-xs text-muted-foreground">{tr(L, 'material')}</dt><dd className="font-semibold">{p.material}</dd></div>}
+            {p.color && <div className="rounded-2xl bg-muted p-3"><dt className="text-xs text-muted-foreground">{tr(L, 'color')}</dt><dd className="font-semibold">{p.color}</dd></div>}
+          </dl>}
           <div className="flex items-center gap-3">
             <button data-testid="button-add-cart" disabled={!canAdd} onClick={add} className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-bold text-primary-foreground shadow-lg shadow-primary/20 transition hover:-translate-y-0.5 disabled:opacity-40">
               <ShoppingBag className="h-4 w-4" /> {p.stock === 0 ? tr(L, 'soldOut') : canAdd ? tr(L, 'add') : (hi ? 'सारा स्टॉक थैले में' : 'All stock in bag')}
             </button>
             <span className="text-sm text-muted-foreground">{p.stock} {tr(L, 'left')}</span>
           </div>
-          {p.sourceSecond != null && (
+          {p.source !== 'upload' && p.sourceSecond != null && (
             <div className="overflow-hidden rounded-2xl border bg-card">
               <video ref={vid} data-testid="video-source" controls playsInline preload="metadata" src={`${SAMPLE_VIDEO}#t=${p.sourceSecond}`} className="aspect-video w-full bg-foreground"
                 onLoadedMetadata={(e) => { e.currentTarget.currentTime = p.sourceSecond!; }}>

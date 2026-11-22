@@ -69,7 +69,7 @@ export function fmtClock(sec: number) {
 
 const dict = {
   shop: ['Shop', 'दुकान'], search: ['Search sarees, jhumkas, colours...', 'साड़ी, झुमके, रंग खोजें...'],
-  all: ['All', 'सभी'], Sarees: ['Sarees', 'साड़ियाँ'], Jewellery: ['Jewellery', 'आभूषण'], Kurtas: ['Kurtas', 'कुर्ते'],
+  all: ['All', 'सभी'], Sarees: ['Sarees', 'साड़ियाँ'], Jewellery: ['Jewellery', 'आभूषण'], Kurtas: ['Kurtas', 'कुर्ते'], Other: ['Other', 'अन्य'],
   add: ['Add to bag', 'थैले में डालें'], bag: ['Bag', 'थैला'], left: ['left', 'बचे'], soldOut: ['Sold out', 'स्टॉक खत्म'],
   dealEnds: ['Deal ends in', 'ऑफ़र खत्म होगा'], watch: ['Watch in showcase', 'वीडियो में देखें'],
   material: ['Material', 'कपड़ा / धातु'], color: ['Colour', 'रंग'], empty: ['Nothing matches that yet.', 'अभी कुछ नहीं मिला।'],

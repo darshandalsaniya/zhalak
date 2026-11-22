@@ -24,8 +24,66 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /catalog/video-analysis:
+    post:
+      operationId: analyzeCatalogVideo
+      summary: Draft products from the speech in a short seller video
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/CatalogAudioInput"
+      responses:
+        "200":
+          description: Transcript and unreviewed product suggestions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CatalogVideoAnalysis"
+        default:
+          description: Upload or provider error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CatalogVideoError"
 components:
   schemas:
+    CatalogAudioInput:
+      type: object
+      required: [audio]
+      properties:
+        audio: { type: string, format: binary, description: Mono 16 kHz PCM WAV, up to 30 seconds }
+    CatalogVideoError:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string }
+    CatalogVideoAnalysis:
+      type: object
+      required: [transcript, language, products]
+      properties:
+        transcript: { type: string }
+        language: { type: ["string", "null"] }
+        products:
+          type: array
+          maxItems: 6
+          items:
+            $ref: "#/components/schemas/CatalogProductSuggestion"
+    CatalogProductSuggestion:
+      type: object
+      required: [title, titleHi, description, descriptionHi, category, price, stock, material, color, sourceSecond]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 120 }
+        titleHi: { type: string, minLength: 1, maxLength: 120 }
+        description: { type: string, maxLength: 350 }
+        descriptionHi: { type: string, maxLength: 350 }
+        category: { type: string, enum: [Sarees, Jewellery, Kurtas, Other] }
+        price: { type: ["integer", "null"], minimum: 1, maximum: 10000000 }
+        stock: { type: ["integer", "null"], minimum: 0, maximum: 1000000 }
+        material: { type: string, maxLength: 70 }
+        color: { type: string, maxLength: 70 }
+        sourceSecond: { type: ["number", "null"], minimum: 0, maximum: 30 }
     HealthStatus:
       type: object
       properties:

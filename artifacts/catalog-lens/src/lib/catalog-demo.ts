@@ -4,7 +4,7 @@ export type Product = {
   titleHi: string;
   description: string;
   descriptionHi: string;
-  category: 'Sarees' | 'Jewellery' | 'Kurtas';
+  category: 'Sarees' | 'Jewellery' | 'Kurtas' | 'Other';
   price: number;
   originalPrice: number;
   stock: number;
@@ -12,6 +12,9 @@ export type Product = {
   color: string;
   image: string;
   sourceSecond: number | null;
+  source?: 'upload';
+  sourceName?: string;
+  stockMissing?: boolean;
   offerMinutes: number;
   offerEndsAt: number | null;
   needsReview: boolean;

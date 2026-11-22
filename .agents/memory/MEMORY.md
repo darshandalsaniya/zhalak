@@ -1,0 +1,1 @@
+- [Sarvam upload pilot](sarvam-upload-pilot.md) — speech is analyzed without sending video; timestamp coverage varies and paid analysis is preview-only.
