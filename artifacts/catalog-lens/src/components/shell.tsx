@@ -22,9 +22,9 @@ export function Shell({ children }: { children: ReactNode }) {
         <div className="mx-auto flex max-w-6xl items-center gap-2 px-3 py-3 sm:gap-3 sm:px-4">
           <Link href="/" className="flex shrink-0 items-center gap-1.5 sm:gap-2" data-testid="link-home">
             <span className="grid h-7 w-7 place-items-center rounded-full bg-primary bandhani text-primary-foreground sm:h-9 sm:w-9">
-              <span className="font-display text-lg leading-none">c</span>
+              <span aria-hidden="true" className="font-display text-lg leading-none">Z</span>
             </span>
-            <span className="font-display text-base font-bold tracking-tight sm:text-xl">CatalogLens</span>
+            <span className="font-display text-base font-bold tracking-tight sm:text-xl">Zhalak</span>
           </Link>
           <nav className="ml-auto flex items-center gap-1 rounded-full border bg-card p-1">
             {tab('/', 'Seller studio', 'Studio', <Clapperboard className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, loc === '/', 'link-studio')}

@@ -15,6 +15,7 @@ export type DemoState = {
   lang: Lang;
 };
 
+// Retain the original key so existing browser data survives a branding change.
 const KEY = 'cataloglens-demo-v1';
 
 function fresh(): DemoState {

@@ -16,7 +16,7 @@ router.post("/catalog/video-analysis", (req, res, next) => {
     return;
   }
   if (req.get("sec-fetch-site") === "cross-site") {
-    res.status(403).json({ error: "Upload from CatalogLens Seller Studio." });
+    res.status(403).json({ error: "Upload from Zhalak Seller Studio." });
     return;
   }
   if (!req.is("multipart/form-data")) {

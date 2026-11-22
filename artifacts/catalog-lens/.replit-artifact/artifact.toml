@@ -1,6 +1,6 @@
 kind = "web"
 previewPath = "/"
-title = "CatalogLens"
+title = "Zhalak"
 description = "A presentation-ready demo of video-to-catalog commerce for small Indian sellers, with seller review, a bilingual buyer catalog, and a test purchase."
 version = "1.0.0"
 id = "artifacts/catalog-lens"
