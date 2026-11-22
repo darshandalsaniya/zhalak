@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "CatalogLens"
+description = "A presentation-ready demo of video-to-catalog commerce for small Indian sellers, with seller review, a bilingual buyer catalog, and a test purchase."
+version = "1.0.0"
+id = "artifacts/catalog-lens"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18738
+
+[services.development]
+run = "pnpm --filter @workspace/catalog-lens run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/catalog-lens", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/catalog-lens/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18738"
+BASE_PATH = "/"
