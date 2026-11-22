@@ -1,1 +1,2 @@
 - [Sarvam upload pilot](sarvam-upload-pilot.md) — speech is analyzed without sending video; timestamp coverage varies and paid analysis is preview-only.
+- [GitHub source control](github-source-control.md) — resolve the current GitHub integration after authorization; its handle can change.
