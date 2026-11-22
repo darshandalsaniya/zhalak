@@ -10,3 +10,5 @@ Use Sarvam's direct APIs for the CatalogLens upload pilot, not an MCP connection
 **How to apply:** Leave unverified details and unavailable timestamps unset rather than inventing them. Keep the paid endpoint off in public builds until seller access and per-seller spending controls are added; the current prototype has no seller accounts.
 
 The seller should be able to upload a clip up to two minutes long. Sarvam's synchronous speech endpoint caps each audio request at 30 seconds; split the audio for transcription, restore full-video timestamps, and use the combined transcript for a single product review. Sarvam can timestamp a phrase at the start of a segment even if speech comes much later; trim long silent lead-ins before sending and add that offset back.
+
+Sarvam's chat JSON mode can return valid JSON and HTTP 200 without the requested product array. A successful transcription is not evidence that drafting succeeded. Diagnose response shape without logging the transcript or raw model output.
