@@ -28,6 +28,8 @@ paths:
     post:
       operationId: analyzeCatalogVideo
       summary: Draft products from the speech in a seller video up to two minutes long
+      security:
+        - VideoUploadToken: []
       requestBody:
         required: true
         content:
@@ -48,6 +50,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/CatalogVideoError"
 components:
+  securitySchemes:
+    VideoUploadToken:
+      type: http
+      scheme: bearer
+      description: Shared server-configured access code for the demo upload feature.
   schemas:
     CatalogAudioInput:
       type: object

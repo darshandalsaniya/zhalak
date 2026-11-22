@@ -4,6 +4,7 @@ import { Play, Sparkles, Check, AlertTriangle, Clock, Send, PackageCheck, FileTe
 import { extractSampleProducts, SAMPLE_VIDEO, SAMPLE_POSTER, SAMPLE_CAPTIONS, formatInr, type Product } from '@/lib/catalog-demo';
 import { useDemo, setDemo, fmtClock } from '@/lib/store';
 import { useToast } from '@/hooks/use-toast';
+import { UploadAccessDialog } from '@/components/upload-access-dialog';
 import { captureCurrentFrame, draftsFromVideo, uploadErrorMessage, uploadLimits, validateVideoFile } from '@/lib/video-upload';
 
 const STEPS = ['Reading prepared Hindi captions for the sample', 'Finding where each product is shown', 'Drafting titles, prices and stock', 'Flagging anything that needs your eye'];
@@ -35,7 +36,7 @@ export default function Studio() {
     }
   };
 
-  const analyzeUpload = async () => {
+  const analyzeUpload = async (token: string) => {
     if (!selected || activeUpload.current || s.stage !== 'idle') return;
     const run = new AbortController();
     activeUpload.current = run;
@@ -43,7 +44,7 @@ export default function Studio() {
     setTranscript('');
     setUploadStatus('Preparing the audio from your clip…');
     try {
-      const result = await draftsFromVideo(selected.file, run.signal, () => setUploadStatus('Sarvam is transcribing the audio and drafting products. Longer clips may take more time…'));
+      const result = await draftsFromVideo(selected.file, token, run.signal, () => setUploadStatus('Sarvam is transcribing the audio and drafting products. Longer clips may take more time…'));
       if (run.signal.aborted) return;
       setTranscript(result.transcript);
       if (result.drafts.length === 0) {
@@ -128,10 +129,12 @@ export default function Studio() {
                   <p className="truncate text-sm font-semibold" title={selected.file.name}>{selected.file.name}</p>
                   <p className="mt-2 text-xs text-muted-foreground">Only the audio is sent to Sarvam for transcription and draft generation. The video stays on your device. Only upload clips you have permission to use.</p>
                   <div className="mt-3 flex flex-wrap items-center gap-3">
-                    <button type="button" disabled={!!uploadStatus} onClick={analyzeUpload} data-testid="button-analyze-video"
-                      className="inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-2 text-sm font-bold text-secondary-foreground disabled:opacity-60">
-                      {uploadStatus ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} Analyze video
-                    </button>
+                    <UploadAccessDialog onConfirm={analyzeUpload} trigger={
+                      <button type="button" disabled={!!uploadStatus} data-testid="button-analyze-video"
+                        className="inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-2 text-sm font-bold text-secondary-foreground disabled:opacity-60">
+                        {uploadStatus ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} Analyze video
+                      </button>
+                    } />
                     <button type="button" disabled={!!uploadStatus} onClick={() => { setSelected(null); setTranscript(''); setError(null); }} className="text-sm font-semibold underline disabled:opacity-50">Remove video</button>
                   </div>
                 </div>

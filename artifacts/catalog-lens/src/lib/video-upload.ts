@@ -86,7 +86,7 @@ export function captureCurrentFrame(video: HTMLVideoElement): string {
 }
 
 export async function draftsFromVideo(
-  file: File, signal: AbortSignal, onSending: () => void,
+  file: File, token: string, signal: AbortSignal, onSending: () => void,
 ): Promise<{ drafts: Product[]; transcript: string }> {
   const url = URL.createObjectURL(file);
   const video = document.createElement('video');
@@ -113,7 +113,10 @@ export async function draftsFromVideo(
     signal.throwIfAborted();
     const outgoing = wavFile(audio);
     onSending();
-    const result = await analyzeCatalogVideo({ audio: outgoing }, { signal });
+    const result = await analyzeCatalogVideo({ audio: outgoing }, {
+      signal,
+      headers: { Authorization: `Bearer ${token}` },
+    });
     const drafts: Product[] = [];
     for (const p of result.products) {
       signal.throwIfAborted();
@@ -146,6 +149,6 @@ export async function draftsFromVideo(
 export function uploadErrorMessage(error: unknown): string {
   if (error instanceof ApiError && typeof error.data === 'object' && error.data &&
       'error' in error.data && typeof error.data.error === 'string') return error.data.error;
-  if (error instanceof ApiError || error instanceof TypeError) return 'Could not reach the analysis service. Try again in the private demo preview.';
+  if (error instanceof ApiError || error instanceof TypeError) return 'Could not reach the analysis service. Try again in a moment.';
   return error instanceof Error ? error.message : 'Could not analyze the video. Try a different clip.';
 }

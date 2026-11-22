@@ -51,7 +51,7 @@ export function Shell({ children }: { children: ReactNode }) {
       </header>
       <main>{children}</main>
       <footer className="mx-auto mt-16 flex max-w-6xl flex-wrap items-center justify-between gap-3 border-t px-4 py-6 text-xs text-muted-foreground">
-        <p>Demo prototype. The bundled sample uses prepared captions. In the private preview, Sarvam analyzes audio from your clips. Catalog data stays in this browser. No real payments or orders.</p>
+        <p>Demo prototype. The bundled sample uses prepared captions. With an access code, Sarvam can analyze audio from your clips. Catalog data stays in this browser. No real payments or orders.</p>
         <button data-testid="button-reset" onClick={() => { if (confirm('Reset the whole demo in this browser?')) resetDemo(); }} className="flex items-center gap-1 rounded-full border px-3 py-1.5 hover:bg-muted">
           <RotateCcw className="h-3 w-3" /> Reset demo
         </button>

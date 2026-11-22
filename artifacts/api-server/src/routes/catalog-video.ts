@@ -1,3 +1,4 @@
+import { createHash, timingSafeEqual } from "node:crypto";
 import { raw, Router, type IRouter } from "express";
 import { AnalyzeCatalogVideoBody } from "@workspace/api-zod";
 import { analyzeSellerAudio, SarvamCatalogError } from "../lib/sarvam-catalog";
@@ -5,25 +6,49 @@ import { maxCatalogSeconds, maxCatalogUploadBytes, readWavDuration } from "../li
 
 const router: IRouter = Router();
 const windowMs = 10 * 60_000;
+const tokenWindowMs = 60_000;
 let attempts: number[] = [];
 let active = 0;
+let failedTokenAttempts = 0;
+let tokenWindowEnds = 0;
+
+const tokenDigest = (token: string) => createHash("sha256").update(token).digest();
 
 router.post("/catalog/video-analysis", (req, res, next) => {
   res.set("Cache-Control", "no-store");
-  // This pilot has no seller sign-in. Do not expose the paid endpoint on a public deployment.
-  if (process.env.NODE_ENV === "production" || !process.env.SARVAM_API_KEY) {
-    res.status(503).json({ error: "Video transcription is available in the private demo preview once Sarvam is configured." });
+  const expected = process.env.ZHALAK_UPLOAD_TOKEN;
+  if (!expected || !process.env.SARVAM_API_KEY) {
+    res.status(503).json({ error: "Video analysis has not been configured for this site yet. You can still try the sample video." });
     return;
   }
   if (req.get("sec-fetch-site") === "cross-site") {
     res.status(403).json({ error: "Upload from Zhalak Seller Studio." });
     return;
   }
+  const provided = req.get("authorization")?.match(/^Bearer (\S{1,128})$/i)?.[1];
+  if (!provided) {
+    res.status(401).set("WWW-Authenticate", "Bearer").json({ error: "Enter the video analysis access code." });
+    return;
+  }
+  const now = Date.now();
+  if (now >= tokenWindowEnds) {
+    failedTokenAttempts = 0;
+    tokenWindowEnds = now + tokenWindowMs;
+  }
+  if (failedTokenAttempts >= 12) {
+    res.status(429).set("Retry-After", String(Math.ceil((tokenWindowEnds - now) / 1000)))
+      .json({ error: "Too many incorrect access codes. Wait a minute and try again." });
+    return;
+  }
+  if (!timingSafeEqual(tokenDigest(provided), tokenDigest(expected))) {
+    failedTokenAttempts += 1;
+    res.status(401).set("WWW-Authenticate", "Bearer").json({ error: "That access code is incorrect. Click Analyze video to try again." });
+    return;
+  }
   if (!req.is("multipart/form-data")) {
     res.status(415).json({ error: "No audio file was attached." });
     return;
   }
-  const now = Date.now();
   attempts = attempts.filter((time) => now - time < windowMs);
   if (attempts.length >= 8 || active >= 2) {
     res.set("Retry-After", String(attempts.length >= 8 ? Math.ceil((attempts[0] + windowMs - now) / 1000) : 30));
