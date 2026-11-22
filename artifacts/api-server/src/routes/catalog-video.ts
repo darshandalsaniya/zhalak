@@ -69,7 +69,9 @@ router.post("/catalog/video-analysis", (req, res, next) => {
         ? "Sarvam is limiting requests or the account has run out of credits. Try again later."
         : step === "transcribe"
           ? "Sarvam couldn't transcribe this clip. Check that speech is audible and try again."
-          : "Sarvam couldn't turn the transcript into draft products. Please try again.";
+          : step === "draft" && providerStatus === 200
+            ? "The audio was transcribed, but Sarvam did not return a usable product list after two attempts."
+            : "The audio was transcribed, but Sarvam could not create draft products. Try again later.";
     res.status(502).json({ error: message });
   }
 });
